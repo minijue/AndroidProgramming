@@ -42,6 +42,7 @@ public class DrawView extends View {
 
         invalidate();
 
+
         return true;
     }
 
