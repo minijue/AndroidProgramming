@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "com.example.wangjue.chromometertest"
+        applicationId "com.example.wangjue.imageviewtest"
         minSdkVersion 19
         targetSdkVersion 25
         versionCode 1
@@ -20,12 +20,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
-    }
-
 }
 
 dependencies {
