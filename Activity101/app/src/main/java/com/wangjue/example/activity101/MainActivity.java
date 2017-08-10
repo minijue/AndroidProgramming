@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
+    ProgressBar progressBar;
     ProgressDialog progressDialog;
 
     @Override
@@ -17,7 +20,10 @@ public class MainActivity extends Activity {
     public void onStart() {
         super.onStart();
 
-        progressDialog = ProgressDialog.show(this, "Please wait", "Progressing...", true);
+        progressBar = findViewById(R.id.progress);
+        TextView tv = findViewById(R.id.tv);
+
+        //       progressDialog = ProgressDialog.show(this, "Please wait", "Progressing...", true);
         CountDownTimer timer = new CountDownTimer(3000, 1000) {
             @Override
             public void onTick(long l) {
@@ -25,7 +31,9 @@ public class MainActivity extends Activity {
 
             @Override
             public void onFinish() {
-                progressDialog.dismiss();
+//                progressDialog.dismiss();
+                progressBar.setVisibility(ProgressBar.INVISIBLE);
+                tv.setVisibility(TextView.INVISIBLE);
             }
         }.start();
     }
