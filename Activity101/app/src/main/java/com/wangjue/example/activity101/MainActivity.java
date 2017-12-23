@@ -2,8 +2,10 @@ package com.wangjue.example.activity101;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -15,6 +17,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+//      setContentView(R.layout.scrollview_example);
     }
 
     public void onStart() {
@@ -36,5 +39,10 @@ public class MainActivity extends Activity {
                 tv.setVisibility(TextView.INVISIBLE);
             }
         }.start();
+
+    }
+
+    public void click(View view) {
+        startActivity(new Intent(this, LayoutsActivity.class));
     }
 }
