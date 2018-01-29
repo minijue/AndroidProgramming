@@ -3,7 +3,6 @@ package com.example.wangjue.basicviews2;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 import android.widget.ProgressBar;
 
 public class MainActivity extends Activity {
@@ -21,17 +20,19 @@ public class MainActivity extends Activity {
 
         progress = 0;
         progressBar = findViewById(R.id.progressbar);
+        progressBar.setMax(100);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (progressStatus < 10) {
+                while (progressStatus < 100) {
                     progressStatus = doSomeWork();
+                    progressBar.setProgress(progressStatus);
                 }
 
-                handler.post(() -> {
-                    progressBar.setVisibility(View.GONE);
-                });
+//                handler.post(() -> {
+//                    progressBar.setVisibility(View.GONE);
+//                });
             }
 
             private int doSomeWork() {
