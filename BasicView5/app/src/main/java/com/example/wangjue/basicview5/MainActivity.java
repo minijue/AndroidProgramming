@@ -8,20 +8,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MainActivity extends ListActivity {
-    String[] presidents = {
-            "Dwight D. Eisenhower",
-            "John F. Kennedy",
-            "Lyndon B. Johnson",
-            "Richard Nixon",
-            "Gerald Ford",
-            "Jimmy Carter",
-            "Ronald Reagan",
-            "George H. W. Bush",
-            "Bill Clinton",
-            "George W. Bush",
-            "Barack Obama",
-            "Donald J. Trump"
-    };
+    String[] presidents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +17,7 @@ public class MainActivity extends ListActivity {
         ListView lstView = getListView();
         lstView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         lstView.setTextFilterEnabled(true);
+        presidents = getResources().getStringArray(R.array.presidents_array);
         setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, presidents));
     }
 
