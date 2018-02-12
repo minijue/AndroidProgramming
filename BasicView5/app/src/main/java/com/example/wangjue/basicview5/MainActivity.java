@@ -27,7 +27,10 @@ public class MainActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, presidents));
+        ListView lstView = getListView();
+        lstView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        lstView.setTextFilterEnabled(true);
+        setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, presidents));
     }
 
     public void onListItemClick(ListView parent, View v, int position, long id) {
