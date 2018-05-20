@@ -67,6 +67,12 @@ public class DBAdapter {
         return db.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
     }
 
+    public int getContactsCount() {
+        Cursor c = db.query(DATABASE_TABLE, new String[]{KEY_ROWID, KEY_NAME, KEY_EMAIL},
+                null, null, null, null, null);
+        return c.getCount();
+    }
+
     private static class DatabaseHelper extends SQLiteOpenHelper {
         DatabaseHelper(Context ctx) {
             super(ctx, DATABASE_NAME, null, DATABASE_VERSION);
