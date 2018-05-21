@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         idset.add((int) id);
         id = db.insertContact("Zhouli", "sunnyzlwj@hotmail.com");
         idset.add((int) id);
+        id = db.insertContact("Wang Zhizhou", "doudou@126.com");
+        idset.add((int) id);
         db.close();
 
         btnPrev.setEnabled(false);
@@ -69,21 +71,8 @@ public class MainActivity extends AppCompatActivity {
             name = c.getString(1);
             email = c.getString(2);
 
-            boolean hasLess = false;
-            boolean hasBigger = false;
-
-            for (Integer item : idset) {
-                if (item.longValue() > i) {
-                    hasBigger = true;
-                    break;
-                } else if (item.longValue() < i) {
-                    hasLess = true;
-                    break;
-                }
-            }
-
-            btnPrev.setEnabled(hasLess);
-            btnNext.setEnabled(hasBigger);
+            btnPrev.setEnabled(idset.lower(i) != null);
+            btnNext.setEnabled(idset.higher(i) != null);
             btnUpdate.setEnabled(true);
             btnDel.setEnabled(true);
         }
@@ -105,12 +94,20 @@ public class MainActivity extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.btnPrev:
                 if (idset.contains(index)) {
-                    displayContact(--index);
+                    Integer I = idset.lower(index);
+                    if (I != null) {
+                        index = I.intValue();
+                        displayContact(index);
+                    }
                 }
                 break;
             case R.id.btnNext:
                 if (idset.contains(index)) {
-                    displayContact(++index);
+                    Integer I = idset.higher(index);
+                    if (I != null) {
+                        index = I.intValue();
+                        displayContact(index);
+                    }
                 }
                 break;
             case R.id.btnUpdate:
