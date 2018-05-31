@@ -25,7 +25,6 @@ public class BooksProvider extends ContentProvider {
     static final int BOOK_ID = 2;
 
     private static final UriMatcher uriMatcher;
-
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         uriMatcher.addURI(PROVIDER_NAME, "books", BOOKS);
@@ -43,7 +42,6 @@ public class BooksProvider extends ContentProvider {
     private static class DatabaseHelper extends SQLiteOpenHelper {
         DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
-
         }
 
         @Override
@@ -86,9 +84,9 @@ public class BooksProvider extends ContentProvider {
     public String getType(@NonNull Uri uri) {
         switch (uriMatcher.match(uri)) {
             case BOOKS:
-                return "vnd.android.cursor.dir/vnd.learn2develop.books ";
+                return "vnd.android.cursor.dir/vnd.wangjue.books ";
             case BOOK_ID:
-                return "vnd.android.cursor.item/vnd.learn2develop.books";
+                return "vnd.android.cursor.item/vnd.wangjue.books";
             default:
                 throw new IllegalArgumentException("Unknown URI" + uri);
         }
