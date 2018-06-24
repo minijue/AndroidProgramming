@@ -11,7 +11,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +25,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class MainActivity extends AppCompatActivity {
     final private int REQUEST_INTERNET = 123;
@@ -90,6 +100,44 @@ public class MainActivity extends AppCompatActivity {
         return str;
     }
 
+    private String WordDefinition(String word) {
+        InputStream in = null;
+        String strDefinition = "";
+        try {
+            in = OpenHttpConnetion("http://services.aonaware.com/DictService/DictService.asmx/Define?word=" + word);
+            Document doc = null;
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db;
+            try {
+                db = dbf.newDocumentBuilder();
+                doc = db.parse(in);
+            } catch (ParserConfigurationException ex) {
+                ex.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            doc.getDocumentElement().normalize();
+
+            NodeList definitionElements = doc.getElementsByTagName("Definition");
+            for (int i = 0; i < definitionElements.getLength(); i++) {
+                Node itemNode = definitionElements.item(i);
+                if (itemNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element definitionElement = (Element) itemNode;
+                    NodeList wordDefinitionElements = definitionElement.getElementsByTagName("WordDefinition");
+                    strDefinition = "";
+                    for (int j = 0; j < wordDefinitionElements.getLength(); j++) {
+                        Element wordDefinitionElement = (Element) wordDefinitionElements.item(j);
+                        NodeList textNodes = wordDefinitionElement.getChildNodes();
+                        strDefinition += textNodes.item(0).getNodeValue() + ".\n";
+                    }
+                }
+            }
+        } catch (IOException ex) {
+
+        }
+        return strDefinition;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             new DownloadImageTask().execute("http://xw.ecjtu.jx.cn/_upload/tpl/00/68/104/template104/images/head.jpg");
             new DownloadTextTask().execute("http://www.ecjtu.jx.cn/2018/0615/c275a58432/page.htm");
+            new AccessWebServiceTask().execute("apple");
         }
     }
 
@@ -143,7 +192,21 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
+            TextView tv = findViewById(R.id.textView);
+            tv.setText(s);
+        }
+    }
+
+    private class AccessWebServiceTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPostExecute(String s) {
             Toast.makeText(getBaseContext(), s, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            return WordDefinition(strings[0]);
         }
     }
 }
