@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -63,6 +64,32 @@ public class MainActivity extends AppCompatActivity {
         return bitmap;
     }
 
+    private String DownloadText(String URL) {
+        int BUFFER_SIZE = 2000;
+        InputStream in = null;
+        try {
+            in = OpenHttpConnetion(URL);
+        } catch (IOException ex) {
+            return "";
+        }
+
+        InputStreamReader reader = new InputStreamReader(in);
+        int charRead;
+        String str = "";
+        char[] inputBuffer = new char[BUFFER_SIZE];
+        try {
+            while ((charRead = reader.read(inputBuffer)) > 0) {
+                String readString = String.copyValueOf(inputBuffer, 0, charRead);
+                str += readString;
+                inputBuffer = new char[BUFFER_SIZE];
+            }
+            in.close();
+        } catch (IOException ex) {
+            return "";
+        }
+        return str;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     REQUEST_INTERNET);
         } else {
             new DownloadImageTask().execute("http://xw.ecjtu.jx.cn/_upload/tpl/00/68/104/template104/images/head.jpg");
+            new DownloadTextTask().execute("http://www.ecjtu.jx.cn/2018/0615/c275a58432/page.htm");
         }
     }
 
@@ -103,6 +131,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Bitmap doInBackground(String... urls) {
             return DownloadImage(urls[0]);
+        }
+    }
+
+    private class DownloadTextTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            return DownloadText(urls[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            Toast.makeText(getBaseContext(), s, Toast.LENGTH_SHORT).show();
         }
     }
 }
