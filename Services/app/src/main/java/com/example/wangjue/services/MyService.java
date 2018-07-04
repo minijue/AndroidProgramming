@@ -10,8 +10,14 @@ import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MyService extends Service {
+    static final int UPDATE_INTERVAL = 1000;
+    int counter = 0;
+    private Timer timer = new Timer();
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -21,6 +27,9 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(this, "Service started", Toast.LENGTH_SHORT).show();
+
+        doSomethingRepeatedly();
+
         try {
             new DoBackgroundTask().execute(new URL("http://www.google.com/some.pdf"),
                     new URL("http://www.amazon.com/some.pdf"),
@@ -32,6 +41,15 @@ public class MyService extends Service {
         return START_STICKY;
     }
 
+    private void doSomethingRepeatedly() {
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d("My Service", String.valueOf(++counter));
+            }
+        }, 0, UPDATE_INTERVAL);
+    }
+
     private int DownloadFile(URL url) {
         try {
             Thread.sleep(5000);
@@ -39,6 +57,16 @@ public class MyService extends Service {
             e.printStackTrace();
         }
         return 100;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (timer != null) {
+            timer.cancel();
+        }
+        Toast.makeText(this, "Service destroyed", Toast.LENGTH_SHORT).show();
     }
 
     private class DoBackgroundTask extends AsyncTask<URL, Integer, Long> {
@@ -51,6 +79,7 @@ public class MyService extends Service {
         @Override
         protected void onPostExecute(Long aLong) {
             Toast.makeText(getBaseContext(), "Downloaded " + aLong + " bytes", Toast.LENGTH_SHORT).show();
+            stopSelf();
         }
 
         @Override
@@ -63,11 +92,5 @@ public class MyService extends Service {
             }
             return totalBytesDownloaded;
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Toast.makeText(this, "Service destroyed", Toast.LENGTH_SHORT).show();
     }
 }
