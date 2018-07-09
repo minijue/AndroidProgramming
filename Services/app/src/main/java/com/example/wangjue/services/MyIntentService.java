@@ -18,10 +18,11 @@ public class MyIntentService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         thread.start();
+        String url = intent.getStringExtra("myurl");
 
         try {
-            int result = DownloadFile(new URL("http://www.amazon.com/somefile.pdf"));
-            Log.d("Intent Service", "Downloaded " + result + " bytes.");
+            int result = DownloadFile(new URL(url));
+            Log.d("Intent Service", "Downloaded " + result + " bytes from " + url);
 
             Intent broadcastIntent = new Intent();
             broadcastIntent.setAction("FILE_DOWNLOADED_ACTION");

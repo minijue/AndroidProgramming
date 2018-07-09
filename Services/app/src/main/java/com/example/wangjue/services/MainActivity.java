@@ -43,7 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void startService(View view) {
         // startService(new Intent(getBaseContext(), MyService.class));
-        startService(new Intent(getBaseContext(), MyIntentService.class));
+        Intent intentSerivce = new Intent(getBaseContext(), MyIntentService.class);
+        intentSerivce.putExtra("myurl", "http://www.amazon.com/somefile.pdf");
+        startService(intentSerivce);
     }
 
     public void stopService(View view) {
