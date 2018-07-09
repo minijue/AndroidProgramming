@@ -3,12 +3,12 @@ package com.example.wangjue.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,10 +18,13 @@ public class MyService extends Service {
     int counter = 0;
     private Timer timer = new Timer();
 
+    private final IBinder binder = new MyBinder();
+    URL[] urls;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
     @Override
@@ -30,15 +33,18 @@ public class MyService extends Service {
 
         doSomethingRepeatedly();
 
-        try {
-            new DoBackgroundTask().execute(new URL("http://www.google.com/some.pdf"),
-                    new URL("http://www.amazon.com/some.pdf"),
-                    new URL("http://www.baidu.com/some.pdf"),
-                    new URL("http://www.wrox.com/some.pdf"));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        new DoBackgroundTask().execute(urls);
+//            new URL("http://www.google.com/some.pdf"),
+//                    new URL("http://www.amazon.com/some.pdf"),
+//                    new URL("http://www.baidu.com/some.pdf"),
+//                    new URL("http://www.wrox.com/some.pdf"));
         return START_STICKY;
+    }
+
+    public class MyBinder extends Binder {
+        MyService getService() {
+            return MyService.this;
+        }
     }
 
     private void doSomethingRepeatedly() {
