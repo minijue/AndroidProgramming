@@ -14,10 +14,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startService(View view) {
-        startService(new Intent(getBaseContext(), MyService.class));
+        // startService(new Intent(getBaseContext(), MyService.class));
+        startService(new Intent(getBaseContext(), MyIntentService.class));
     }
 
     public void stopService(View view) {
-        stopService(new Intent(getBaseContext(), MyService.class));
+        // stopService(new Intent(getBaseContext(), MyService.class));
+        stopService(new Intent(getBaseContext(), MyIntentService.class));
     }
 }

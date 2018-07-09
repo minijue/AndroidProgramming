@@ -21,6 +21,11 @@
                 <action android:name="com.example.wangjue.services.MyService" />
             </intent-filter>
         </service>
+        <service android:name=".MyIntentService">
+            <intent-filter>
+                <action android:name="com.example.wangjue.services.MyIntentService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
