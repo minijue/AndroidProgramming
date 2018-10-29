@@ -21,7 +21,7 @@ public class ToDoListActivity extends Activity implements OnNewItemAddedListener
         ToDoListFragment toDoListFragment = (ToDoListFragment) fm.findFragmentById(R.id.TodoListFragment);
 
         todoItems = new ArrayList<String>();
-        aa = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, todoItems);
+        aa = new ArrayAdapter<String>(this, R.layout.todolist_item, todoItems);
 
         toDoListFragment.setListAdapter(aa);
     }
