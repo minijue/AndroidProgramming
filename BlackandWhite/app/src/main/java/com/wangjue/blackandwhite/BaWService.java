@@ -16,26 +16,28 @@ public class BaWService extends TileService {
         @Override
         public void onChange(boolean selfChange) {
             if (toggleState) {
-                taggleScreeen(toggleState);
+                Settings.Secure.putInt(getContentResolver(), "accessibility_display_daltonizer_enabled", 1);   // 启动/关闭色彩校正
             }
         }
     };
 
     private void taggleScreeen(boolean b) {
         toggleState = b;
-        icon = Icon.createWithResource(getApplicationContext(), R.drawable.tv);
         int active = b ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE;
         getQsTile().setState(active);// 更改成非活跃状态
 
-        int value1 = b ? Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL : Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
-        int value2 = b ? 1 : 0;
-        String olddisplay = Settings.Secure.getString(getContentResolver(), "accessibility_display_daltonizer");   // 原来的校正模式
-        if (b) {
-            Settings.Secure.putString(getContentResolver(), "accessibility_display_daltonizer", "0");       // 校正模式设为“全色盲”（黑白）
-        } else {
-            Settings.Secure.putString(getContentResolver(), "accessibility_display_daltonizer", "olddisplay");  // 恢复原来的校正模式
+        try {
+            int value1 = b ? Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL :
+                    Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
+            Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, value1);   // 自动亮度会关闭色彩校正，因此打开色彩校正时需要关闭自动亮度
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
         }
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, value1);   // 自动亮度会关闭色彩校正，因此打开色彩校正时需要关闭自动亮度
+
+        String olddisplay = b ? "0" : Settings.Secure.getString(getContentResolver(), "accessibility_display_daltonizer");   // 原来的校正模式
+        Settings.Secure.putString(getContentResolver(), "accessibility_display_daltonizer", olddisplay);  // 恢复原来的校正模式
+
+        int value2 = b ? 1 : 0;
         Settings.Secure.putInt(getContentResolver(), "accessibility_display_daltonizer_enabled", value2);   // 启动/关闭色彩校正
     }
 
@@ -72,6 +74,7 @@ public class BaWService extends TileService {
     @Override
     public void onCreate() {
         super.onCreate();
+        icon = Icon.createWithResource(getApplicationContext(), R.drawable.tv);
         // 注册事件
         getApplicationContext().getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), true,
