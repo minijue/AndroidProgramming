@@ -6,12 +6,12 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
-import android.util.Log;
 
 public class BaWService extends TileService {
     private Icon icon;
     private boolean toggleState = false;
 
+    // 监听亮度变化，并保持黑白模式
     private ContentObserver mBrightnessObserver = new ContentObserver(new Handler()) {
         @Override
         public void onChange(boolean selfChange) {
@@ -29,15 +29,14 @@ public class BaWService extends TileService {
 
         int value1 = b ? Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL : Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
         int value2 = b ? 1 : 0;
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, value1);
-//        if (b) {
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-        Settings.Secure.putInt(getContentResolver(), "accessibility_display_daltonizer_enabled", value2);
+        String olddisplay = Settings.Secure.getString(getContentResolver(), "accessibility_display_daltonizer");   // 原来的校正模式
+        if (b) {
+            Settings.Secure.putString(getContentResolver(), "accessibility_display_daltonizer", "0");       // 校正模式设为“全色盲”（黑白）
+        } else {
+            Settings.Secure.putString(getContentResolver(), "accessibility_display_daltonizer", "olddisplay");  // 恢复原来的校正模式
+        }
+        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, value1);   // 自动亮度会关闭色彩校正，因此打开色彩校正时需要关闭自动亮度
+        Settings.Secure.putInt(getContentResolver(), "accessibility_display_daltonizer_enabled", value2);   // 启动/关闭色彩校正
     }
 
     @Override
@@ -73,6 +72,7 @@ public class BaWService extends TileService {
     @Override
     public void onCreate() {
         super.onCreate();
+        // 注册事件
         getApplicationContext().getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), true,
                 mBrightnessObserver);
