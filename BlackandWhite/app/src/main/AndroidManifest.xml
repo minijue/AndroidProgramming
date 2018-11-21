@@ -21,7 +21,7 @@
         <service
             android:name=".BaWService"
             android:icon="@drawable/tv"
-            android:label="黑白模式"
+            android:label="阅读模式"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
