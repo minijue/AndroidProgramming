@@ -12,7 +12,7 @@ public class BaWService extends TileService {
     private boolean toggleState = false;
 
     // 监听亮度变化，并保持黑白模式
-    private ContentObserver mBrightnessObserver = new ContentObserver(new Handler()) {
+    private final ContentObserver mBrightnessObserver = new ContentObserver(new Handler()) {
         @Override
         public void onChange(boolean selfChange) {
             if (toggleState) {
@@ -43,7 +43,13 @@ public class BaWService extends TileService {
 
     @Override
     public void onTileAdded() {
+        int active = toggleState ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE;
+        getQsTile().setState(active);
+
+        getQsTile().setIcon(icon);
+        getQsTile().updateTile();
     }
+
 
     //当用户从快速设定栏中移除的时候调用
     @Override
@@ -60,9 +66,9 @@ public class BaWService extends TileService {
         getQsTile().updateTile();//更新Tile
     }
 
+
     @Override
     public void onStartListening() {
-
     }
 
     // 关闭下拉菜单的时候调用,当快速设置按钮并没有在编辑栏拖到设置栏中不会调用
@@ -79,5 +85,6 @@ public class BaWService extends TileService {
         getApplicationContext().getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), true,
                 mBrightnessObserver);
+
     }
 }
