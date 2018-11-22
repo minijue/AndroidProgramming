@@ -41,7 +41,7 @@ public class BaWService extends TileService {
     }
 
     private void toggleScreen() {
-        int vNightMode = toggleState ? 1 : ((Integer) mapState.get("night_display_activated")).intValue();
+        int vNightMode = toggleState ? 1 : 0;
         Settings.Secure.putInt(getContentResolver(), "night_display_activated", vNightMode);    // 打开/关闭夜间模式（护眼模式）
 
         int vBrightness = toggleState ? 0 : ((Integer) mapState.get(SCREEN_BRIGHTNESS_MODE)).intValue();
@@ -63,11 +63,26 @@ public class BaWService extends TileService {
     //当用户从快速设定栏中移除的时候调用
     @Override
     public void onTileRemoved() {
+        if (toggleState) {
+            toggleState = false;
+            toggleScreen();
+            refreshTile();
+        }
     }
 
 
     @Override
     public void onClick() {
+        try {
+            if (!toggleState) {
+                // 打开阅读模式前保存其他显示状态
+                mapState.put(SCREEN_BRIGHTNESS_MODE, Settings.System.getInt(getContentResolver(), SCREEN_BRIGHTNESS_MODE));
+                mapState.put("accessibility_display_daltonizer", Settings.Secure.getString(getContentResolver(), "accessibility_display_daltonizer"));
+            }
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
         toggleState = !toggleState;
         toggleScreen();
 
@@ -77,16 +92,6 @@ public class BaWService extends TileService {
 
     @Override
     public void onStartListening() {
-        try {
-            if (!toggleState) {
-                // 打开阅读模式前保存其他显示状态
-                mapState.put(SCREEN_BRIGHTNESS_MODE, Settings.System.getInt(getContentResolver(), SCREEN_BRIGHTNESS_MODE));
-                mapState.put("accessibility_display_daltonizer", Settings.Secure.getString(getContentResolver(), "accessibility_display_daltonizer"));
-                mapState.put("night_display_activated", Settings.Secure.getInt(getContentResolver(), "night_display_activated"));
-            }
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
         refreshTile();
     }
 
@@ -107,8 +112,8 @@ public class BaWService extends TileService {
                 mBrightnessObserver);
 
         // 锁屏退出黑白模式
-//        filter.addAction(Intent.ACTION_USER_PRESENT);
-//        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
             @Override
