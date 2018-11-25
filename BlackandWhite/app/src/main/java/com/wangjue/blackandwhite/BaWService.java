@@ -1,20 +1,76 @@
 package com.wangjue.blackandwhite;
 
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.graphics.drawable.Icon;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
+import android.widget.Toast;
+
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class BaWService extends TileService {
-    private Icon icon;
+    private static final int MSG_REFRESH = 0x0417;
 
-    private static boolean toggleState = false;
+    private Handler mHandler;
+
+    private Icon icon;
+    private BroadcastReceiver mBatInfoReceiver;
+
+    private Handler handler = new Handler();
+    private boolean toggleState = false;
+    private String[] tasks = {"com.gudianbiquge.ebook.app", "com.amazon.kindlefc", "com.ilike.cartoon", "com.duokan.reader",
+            "com.chaozh.iReaderFree", "com.netease.snailread"};
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!toggleState && getTask()) {
+                toggleState = true;
+                toggleScreen();
+
+                mHandler.obtainMessage(MSG_REFRESH).sendToTarget();
+            }
+            handler.postDelayed(this, 1000);
+        }
+    };
+
+    private boolean getTask() {
+        String topPackageName;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+            long time = System.currentTimeMillis();
+            // We get usage stats for the last 10 seconds
+            List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000, time);
+            // Sort the stats by the last time used
+            if (stats != null) {
+                SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+                for (UsageStats usageStats : stats) {
+                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                }
+                if (mySortedMap != null && !mySortedMap.isEmpty()) {
+                    topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                    for (String n : tasks) {
+                        if (n.equals(topPackageName)) {
+                            Toast.makeText(this, "阅读模式自动开启", Toast.LENGTH_SHORT).show();
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     // 监听亮度变化，并保持黑白模式
     private final ContentObserver mBrightnessObserver = new ContentObserver(new Handler()) {
@@ -40,6 +96,14 @@ public class BaWService extends TileService {
     }
 
     @Override
+    public void onDestroy() {
+        unregisterReceiver(mBatInfoReceiver);
+        handler.removeCallbacks(runnable);
+
+        super.onDestroy();
+    }
+
+    @Override
     public void onTileAdded() {
         refreshTile();
     }
@@ -57,6 +121,13 @@ public class BaWService extends TileService {
     @Override
     public void onClick() {
         toggleState = !toggleState;
+
+        if (!toggleState && getTask()) {
+            handler.removeCallbacks(runnable);
+        } else {
+            handler.postDelayed(runnable, 1000);
+        }
+
         toggleScreen();
 
         refreshTile();
@@ -87,7 +158,7 @@ public class BaWService extends TileService {
         filter.addAction(Intent.ACTION_USER_PRESENT);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
+        mBatInfoReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
                 if (toggleState) {
@@ -106,5 +177,17 @@ public class BaWService extends TileService {
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
+
+        mHandler = new Handler() {
+            public void handleMessage(Message msg) {//此方法在ui线程运行
+                switch (msg.what) {
+                    case MSG_REFRESH:
+                        refreshTile();
+                        break;
+                }
+            }
+        };
+
+        handler.postDelayed(runnable, 1000);
     }
 }
