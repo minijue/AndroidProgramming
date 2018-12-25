@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.graphics.drawable.Icon;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
@@ -23,43 +22,52 @@ import java.util.TreeMap;
 public class BaWService extends TileService {
     private static final int MSG_REFRESH = 0x0417;
 
-    private Handler mHandler;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {//此方法在ui线程运行
+            switch (msg.what) {
+                case MSG_REFRESH:
+                    refreshTile();
+                    break;
+            }
+        }
+    };
 
     private Icon icon;
     private BroadcastReceiver mBatInfoReceiver;
 
     private Handler handler = new Handler();
     private boolean toggleState = false;
-    private String[] tasks = {"com.gudianbiquge.ebook.app", "com.amazon.kindlefc", "com.ilike.cartoon", "com.duokan.reader",
+    private String[] tasks = {/*"com.gudianbiquge.ebook.app", "com.biqugebendi.ebook.app", */"com.amazon.kindlefc", "com.ilike.cartoon", "com.duokan.reader",
             "com.chaozh.iReaderFree", "com.netease.snailread"};
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if (!toggleState && getTask()) {
-                toggleState = true;
-                toggleScreen();
+    private Runnable runnable = () -> {
+        if (!toggleState && getTask()) {
+            toggleState = true;
+            toggleScreen();
 
-                mHandler.obtainMessage(MSG_REFRESH).sendToTarget();
-            }
-            handler.postDelayed(this, 1000);
+            mHandler.obtainMessage(MSG_REFRESH).sendToTarget();
         }
+        handler.postDelayed(this.runnable, 1000);
     };
 
     private boolean getTask() {
         String topPackageName;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
-            long time = System.currentTimeMillis();
-            // We get usage stats for the last 10 seconds
-            List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000, time);
-            // Sort the stats by the last time used
-            if (stats != null) {
-                SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
-                for (UsageStats usageStats : stats) {
-                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
-                }
-                if (mySortedMap != null && !mySortedMap.isEmpty()) {
-                    topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+        UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+        long time = System.currentTimeMillis();
+        // We get usage stats for the last 10 seconds
+        List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000, time);
+        // Sort the stats by the last time used
+        if (stats != null) {
+            SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+            for (UsageStats usageStats : stats) {
+                mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+            }
+            if (mySortedMap != null && !mySortedMap.isEmpty()) {
+                topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                if (topPackageName.contains("biquge")) {    // 适应各种“笔趣阁”
+                    Toast.makeText(this, "“笔趣阁”阅读模式自动开启", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else {
                     for (String n : tasks) {
                         if (n.equals(topPackageName)) {
                             Toast.makeText(this, "阅读模式自动开启", Toast.LENGTH_SHORT).show();
@@ -177,16 +185,6 @@ public class BaWService extends TileService {
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
-
-        mHandler = new Handler() {
-            public void handleMessage(Message msg) {//此方法在ui线程运行
-                switch (msg.what) {
-                    case MSG_REFRESH:
-                        refreshTile();
-                        break;
-                }
-            }
-        };
 
         handler.postDelayed(runnable, 1000);
     }
